@@ -7,7 +7,6 @@ Original file is located at
     https://colab.research.google.com/drive/1uE3DeahiiCP_yfHVuSOTLgDHJgDMnT5C
 """
 
-!pip install streamlit
 !pip install boto3 
 !pip install pdf2image
 !apt-get install -y poppler-utils

@@ -19,8 +19,8 @@ uploaded_file = st.file_uploader("/content/Doc3.pdf", type=["pdf"])
 
 # --- AWS credentials (use your values or fetch from environment/Secrets) ---
 AWS_ACCESS_KEY_ID=st.secrets["AWS_ACCESS_KEY_ID"],
-AWS_SECRET_ACCESS_KEY_secret_access_key=st.secrets["AWS_SECRET_ACCESS_KEY"],
-AWS_SESSION_TOKEN_session_token=st.secrets["AWS_SESSION_TOKEN"],REGION='us-west-2'
+AWS_SECRET_ACCESS_KEY=st.secrets["AWS_SECRET_ACCESS_KEY"],
+AWS_SESSION_TOKEN=st.secrets["AWS_SESSION_TOKEN"],REGION='us-west-2'
 MODEL_ID = 'anthropic.claude-3-5-sonnet-20240620-v1:0'
 
 def convert_pdf_to_base64_image(pdf_file):

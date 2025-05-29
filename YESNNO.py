@@ -32,12 +32,12 @@ def convert_pdf_to_base64_image(pdf_file):
         return base64.b64encode(img_file.read()).decode("utf-8")
 
 def invoke_claude_with_image(image_b64):
-session = boto3.Session(
-    aws_access_key_id=st.secrets["AWS_ACCESS_KEY_ID"],
-    aws_secret_access_key=st.secrets["AWS_SECRET_ACCESS_KEY"],
-    aws_session_token=st.secrets["AWS_SESSION_TOKEN"],
-    region_name="us-west-2"
-)
+    session = boto3.Session(
+        aws_access_key_id=st.secrets["AWS_ACCESS_KEY_ID"],
+        aws_secret_access_key=st.secrets["AWS_SECRET_ACCESS_KEY"],
+        aws_session_token=st.secrets["AWS_SESSION_TOKEN"],
+        region_name="us-west-2"
+    )
 
     bedrock = session.client("bedrock-runtime")
 
@@ -58,7 +58,7 @@ session = boto3.Session(
                     },
                     {
                         "type": "text",
-                        "text": "From this image, extract all the questions and their selected checkbox (Yes or No). Return as a JSON list with 'field' and 'value'. If unclear, set value to 'Not clear'."
+                        "text": "From this image, extract all the questions and their selected checkbox (Yes or No). Return as a JSON list with 'field' and 'value'."
                     }
                 ]
             }
@@ -66,14 +66,15 @@ session = boto3.Session(
     }
 
     response = bedrock.invoke_model(
-        modelId=MODEL_ID,
-        contentType='application/json',
-        accept='application/json',
+        modelId="anthropic.claude-3-5-sonnet-20240620-v1:0",
+        contentType="application/json",
+        accept="application/json",
         body=json.dumps(payload)
     )
 
     result = json.loads(response['body'].read().decode())
-    return result['content'][0]['text']
+    return result["content"][0]["text"]
+
 
 # --- Run main logic ---
 if uploaded_file:

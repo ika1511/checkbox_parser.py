@@ -11,33 +11,36 @@ import streamlit as st
 import base64
 import json
 import boto3
-from pdf2image import convert_from_bytes
+import fitz  # PyMuPDF
+from PIL import Image
+import io
 
 # --- Streamlit UI ---
 st.title("Yes/No Checkbox Parser (Claude 3.5 via Bedrock)")
 uploaded_file = st.file_uploader("/content/Doc3.pdf", type=["pdf"])
 
 # --- AWS credentials (use your values or fetch from environment/Secrets) ---
-AWS_ACCESS_KEY_ID=st.secrets["AWS_ACCESS_KEY_ID"],
-AWS_SECRET_ACCESS_KEY=st.secrets["AWS_SECRET_ACCESS_KEY"],
-AWS_SESSION_TOKEN=st.secrets["AWS_SESSION_TOKEN"],
-REGION='us-west-2',
+AWS_ACCESS_KEY_ID = st.secrets["AWS_ACCESS_KEY_ID"]
+AWS_SECRET_ACCESS_KEY = st.secrets["AWS_SECRET_ACCESS_KEY"]
+AWS_SESSION_TOKEN = st.secrets["AWS_SESSION_TOKEN"]
+REGION = 'us-west-2'
 MODEL_ID = 'anthropic.claude-3-5-sonnet-20240620-v1:0'
 
 def convert_pdf_to_base64_image(pdf_file):
-    # Convert first page of PDF to PNG image
-    images = convert_from_bytes(pdf_file.read(), dpi=300)
-    image = images[0]
-    image.save("temp.png", "PNG")
-    with open("temp.png", "rb") as img_file:
-        return base64.b64encode(img_file.read()).decode("utf-8")
+    doc = fitz.open(stream=pdf_file.read(), filetype="pdf")
+    first_page = doc.load_page(0)
+    pix = first_page.get_pixmap(dpi=300)
+    img = Image.open(io.BytesIO(pix.tobytes("png")))
+    buffered = io.BytesIO()
+    img.save(buffered, format="PNG")
+    return base64.b64encode(buffered.getvalue()).decode("utf-8")
 
 def invoke_claude_with_image(image_b64):
     session = boto3.Session(
-        aws_access_key_id=st.secrets["AWS_ACCESS_KEY_ID"],
-        aws_secret_access_key=st.secrets["AWS_SECRET_ACCESS_KEY"],
-        aws_session_token=st.secrets["AWS_SESSION_TOKEN"],
-        region_name="us-west-2"
+        aws_access_key_id=AWS_ACCESS_KEY_ID,
+        aws_secret_access_key=AWS_SECRET_ACCESS_KEY,
+        aws_session_token=AWS_SESSION_TOKEN,
+        region_name=REGION
     )
 
     bedrock = session.client("bedrock-runtime")
@@ -67,7 +70,7 @@ def invoke_claude_with_image(image_b64):
     }
 
     response = bedrock.invoke_model(
-        modelId="anthropic.claude-3-5-sonnet-20240620-v1:0",
+        modelId=MODEL_ID,
         contentType="application/json",
         accept="application/json",
         body=json.dumps(payload)
@@ -75,7 +78,6 @@ def invoke_claude_with_image(image_b64):
 
     result = json.loads(response['body'].read().decode())
     return result["content"][0]["text"]
-
 
 # --- Run main logic ---
 if uploaded_file:

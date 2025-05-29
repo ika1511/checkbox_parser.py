@@ -7,8 +7,6 @@ Original file is located at
     https://colab.research.google.com/drive/1uE3DeahiiCP_yfHVuSOTLgDHJgDMnT5C
 """
 
-!apt-get install -y poppler-utils
-
 import streamlit as st
 import base64
 import json

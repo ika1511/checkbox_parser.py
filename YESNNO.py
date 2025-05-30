@@ -19,7 +19,7 @@ import io
 st.title("Yes/No Checkbox Parser (Claude 3.5 via Bedrock)")
 uploaded_file = st.file_uploader("/content/Doc3-1.pdf", type=["pdf"])
 
-# --- AWS credentials (use your values or fetch from environment/Secrets) ---
+# --- AWS credentials ---
 AWS_ACCESS_KEY_ID = st.secrets["AWS_ACCESS_KEY_ID"]
 AWS_SECRET_ACCESS_KEY = st.secrets["AWS_SECRET_ACCESS_KEY"]
 AWS_SESSION_TOKEN = st.secrets["AWS_SESSION_TOKEN"]
@@ -62,7 +62,12 @@ def invoke_claude_with_image(image_b64):
                     },
                     {
                         "type": "text",
-                        "text": "From this image, extract all the questions and their selected checkbox (Yes or No). Return as a JSON list with 'field' and 'value'."
+                        "text": (
+                            "From this image, extract all the questions and their selected checkbox (Yes or No). "
+                            "Return the result strictly as a valid JSON list like: "
+                            "[{\"field\": \"Do you eat fruits every day?\", \"value\": \"Yes\"}, ...]. "
+                            "Do not return any explanation or formatting outside this list."
+                        )
                     }
                 ]
             }
@@ -79,14 +84,21 @@ def invoke_claude_with_image(image_b64):
     result = json.loads(response['body'].read().decode())
     return result["content"][0]["text"]
 
-# --- Run main logic ---
+# --- Main logic ---
 if uploaded_file:
     with st.spinner("Processing and sending to Claude..."):
         try:
             image_b64 = convert_pdf_to_base64_image(uploaded_file)
             output_json_text = invoke_claude_with_image(image_b64)
             st.success("Extraction successful!")
-            st.subheader("Checkbox Responses:")
-            st.json(json.loads(output_json_text))
+
+            st.subheader("Claude's Raw Response:")
+            st.write(output_json_text)
+
+            st.subheader("Checkbox Responses (Parsed JSON):")
+            try:
+                st.json(json.loads(output_json_text))
+            except json.JSONDecodeError:
+                st.error("❌ Claude did not return valid JSON. See the raw response above.")
         except Exception as e:
             st.error(f"❌ Error: {str(e)}")

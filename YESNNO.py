@@ -17,7 +17,7 @@ import io
 
 # --- Streamlit UI ---
 st.title("Yes/No Checkbox Parser (Claude 3.5 via Bedrock)")
-uploaded_file = st.file_uploader("/content/Doc3.pdf", type=["pdf"])
+uploaded_file = st.file_uploader("/content/Doc3-1.pdf", type=["pdf"])
 
 # --- AWS credentials (use your values or fetch from environment/Secrets) ---
 AWS_ACCESS_KEY_ID = st.secrets["AWS_ACCESS_KEY_ID"]
